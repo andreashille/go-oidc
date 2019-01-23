@@ -1,2 +1,2 @@
-// Package key is DEPRECATED. Use github.com/coreos/go-oidc instead.
+// Package key is DEPRECATED. Use github.com/andreashille/go-oidc instead.
 package key
