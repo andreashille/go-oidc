@@ -370,7 +370,7 @@ func TestJWTVerifier(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		err := tt.verifier.Verify(tt.jwt)
+		err := tt.verifier.Verify(tt.jwt, false)
 		if tt.wantErr && (err == nil) {
 			t.Errorf("case %q: wanted non-nil error", tt.name)
 		} else if !tt.wantErr && (err != nil) {
