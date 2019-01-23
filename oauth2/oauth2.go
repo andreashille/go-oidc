@@ -150,6 +150,7 @@ func (c *Client) HttpClient() phttp.Client {
 func (c *Client) AuthCodeURL(state, accessType, prompt string) string {
 	v := c.commonURLValues()
 	v.Set("state", state)
+	v.Set("client_id", c.creds.ID)
 	if strings.ToLower(accessType) == "offline" {
 		v.Set("access_type", "offline")
 	}
@@ -173,7 +174,6 @@ func (c *Client) commonURLValues() url.Values {
 	return url.Values{
 		"redirect_uri": {c.redirectURL.String()},
 		"scope":        {strings.Join(c.scope, " ")},
-		"client_id":    {c.creds.ID},
 	}
 }
 
@@ -183,6 +183,7 @@ func (c *Client) newAuthenticatedRequest(urlToken string, values url.Values) (*h
 	switch c.authMethod {
 	case AuthMethodClientSecretPost:
 		values.Set("client_secret", c.creds.Secret)
+		values.Set("client_id", c.creds.ID)
 		req, err = http.NewRequest("POST", urlToken, strings.NewReader(values.Encode()))
 		if err != nil {
 			return nil, err
@@ -201,7 +202,6 @@ func (c *Client) newAuthenticatedRequest(urlToken string, values url.Values) (*h
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	return req, nil
-
 }
 
 // ClientCredsToken posts the client id and secret to obtain a token scoped to the OAuth2 client via the "client_credentials" grant type.
@@ -257,7 +257,6 @@ func (c *Client) RequestToken(grantType, value string) (result TokenResponse, er
 	v := c.commonURLValues()
 
 	v.Set("grant_type", grantType)
-	v.Set("client_secret", c.creds.Secret)
 	switch grantType {
 	case GrantTypeAuthCode:
 		v.Set("code", value)
