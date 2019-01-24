@@ -556,13 +556,13 @@ func (c *ClientRegistrationResponse) UnmarshalJSON(data []byte) error {
 }
 
 type ClientConfig struct {
-	HTTPClient          phttp.Client
-	Credentials         ClientCredentials
-	Scope               []string
-	RedirectURL         string
-	ProviderConfig      ProviderConfig
-	KeySet              key.PublicKeySet
-	VerifySignatureOnly bool
+	HTTPClient     phttp.Client
+	Credentials    ClientCredentials
+	Scope          []string
+	RedirectURL    string
+	ProviderConfig ProviderConfig
+	KeySet         key.PublicKeySet
+	IgnoreClaims   []string
 }
 
 func NewClient(cfg ClientConfig) (*Client, error) {
@@ -574,13 +574,13 @@ func NewClient(cfg ClientConfig) (*Client, error) {
 	}
 
 	c := Client{
-		credentials:         cfg.Credentials,
-		httpClient:          cfg.HTTPClient,
-		scope:               cfg.Scope,
-		redirectURL:         ru.String(),
-		providerConfig:      newProviderConfigRepo(cfg.ProviderConfig),
-		keySet:              cfg.KeySet,
-		verifySignatureOnly: cfg.VerifySignatureOnly,
+		credentials:    cfg.Credentials,
+		httpClient:     cfg.HTTPClient,
+		scope:          cfg.Scope,
+		redirectURL:    ru.String(),
+		providerConfig: newProviderConfigRepo(cfg.ProviderConfig),
+		keySet:         cfg.KeySet,
+		ignoreClaims:   cfg.IgnoreClaims,
 	}
 
 	if c.httpClient == nil {
@@ -604,9 +604,9 @@ type Client struct {
 	keySet         key.PublicKeySet
 	providerSyncer *ProviderConfigSyncer
 
-	keySetSyncMutex     sync.RWMutex
-	lastKeySetSync      time.Time
-	verifySignatureOnly bool
+	keySetSyncMutex sync.RWMutex
+	lastKeySetSync  time.Time
+	ignoreClaims    []string
 }
 
 func (c *Client) Healthy() error {
@@ -787,7 +787,7 @@ func (c *Client) VerifyJWT(jwt jose.JWT) error {
 		c.credentials.ID,
 		c.maybeSyncKeys, keysFunc)
 
-	return v.Verify(jwt, c.verifySignatureOnly)
+	return v.Verify(jwt, c.ignoreClaims)
 }
 
 // keysFuncWithID returns a function that retrieves at most unexpired
