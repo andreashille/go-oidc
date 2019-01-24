@@ -562,6 +562,7 @@ type ClientConfig struct {
 	RedirectURL    string
 	ProviderConfig ProviderConfig
 	KeySet         key.PublicKeySet
+	IgnoreClaims   []string
 }
 
 func NewClient(cfg ClientConfig) (*Client, error) {
@@ -579,6 +580,7 @@ func NewClient(cfg ClientConfig) (*Client, error) {
 		redirectURL:    ru.String(),
 		providerConfig: newProviderConfigRepo(cfg.ProviderConfig),
 		keySet:         cfg.KeySet,
+		ignoreClaims:   cfg.IgnoreClaims,
 	}
 
 	if c.httpClient == nil {
@@ -604,6 +606,7 @@ type Client struct {
 
 	keySetSyncMutex sync.RWMutex
 	lastKeySetSync  time.Time
+	ignoreClaims    []string
 }
 
 func (c *Client) Healthy() error {
@@ -784,7 +787,7 @@ func (c *Client) VerifyJWT(jwt jose.JWT) error {
 		c.credentials.ID,
 		c.maybeSyncKeys, keysFunc)
 
-	return v.Verify(jwt)
+	return v.Verify(jwt, c.ignoreClaims)
 }
 
 // keysFuncWithID returns a function that retrieves at most unexpired
